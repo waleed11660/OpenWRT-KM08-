@@ -1,0 +1,36 @@
+name: Build OpenWrt for KM08-708H
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout source
+      uses: actions/checkout@v2
+
+    - name: Install Dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y build-essential libncurses5-dev zlib1g-dev gawk git gettext libssl-dev xsltproc wget unzip python3
+
+    - name: Download ImageBuilder
+      run: |
+        wget https://downloads.openwrt.org/releases/22.03.6/targets/ramips/mt7621/openwrt-imagebuilder-22.03.6-ramips-mt7621.Linux-x86_64.tar.xz
+        tar -xf openwrt-imagebuilder-22.03.6-ramips-mt7621.Linux-x86_64.tar.xz
+
+    - name: Copy custom files
+      run: |
+        cp -r files/ openwrt-imagebuilder-22.03.6-ramips-mt7621.Linux-x86_64/files
+
+    - name: Build firmware
+      run: |
+        cd openwrt-imagebuilder-22.03.6-ramips-mt7621.Linux-x86_64
+        make image PROFILE=phicomm_k2p FILES=files/
+
+    - name: Upload firmware
+      uses: actions/upload-artifact@v2
+      with:
+        name: OpenWrt-KM08-708H
+        path: openwrt-imagebuilder-22.03.6-ramips-mt7621.Linux-x86_64/bin/targets/
